@@ -28,7 +28,6 @@ interface CreatePostState {
   selectedAccounts: Account[];
   fileType: FileType;
 
-  // final post
   postFile: File | null;
   postFileURL: string | null;
   editPerPlatform: boolean;

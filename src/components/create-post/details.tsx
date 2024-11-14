@@ -12,8 +12,9 @@ import {
 import { Separator } from "../ui/separator";
 import { useMemo } from "react";
 import { cn } from "@/lib/utils";
-import { socialIcons } from "../icons";
 import { ThumbnailPreview } from "./thumbnail-preview";
+import { socialIcons } from "@/lib/platforms";
+import { SocialAvatar } from "../connected-accounts/social-avatar";
 
 export const Details = () => {
   const setEditPerPlatform = useCreatePostStore(
@@ -135,12 +136,11 @@ export const Details = () => {
 
             return (
               <div key={account.id} className="relative">
-                <Avatar className="w-7 h-7">
-                  <AvatarImage src={account.platform_profile_picture_url!} />
-                  <AvatarFallback>
-                    {account.platform_username?.charAt(0).toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
+                <SocialAvatar
+                  className="w-7 h-7"
+                  profile_picture_url={account.platform_profile_picture_url}
+                  username={account.platform_username}
+                />
                 <div className="absolute -bottom-1 -right-2 text-muted-foreground bg-muted rounded-full p-[3px]">
                   <Icon className="w-3 h-3" />
                 </div>

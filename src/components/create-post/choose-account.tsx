@@ -1,6 +1,5 @@
 import { cn } from "@/lib/utils";
 import { useCreatePostStore, Account } from "@/state/create-post-state";
-import { Avatar, AvatarImage, AvatarFallback } from "@radix-ui/react-avatar";
 
 import { AccountType } from "../../lib/types";
 import { ScrollArea, ScrollBar } from "../ui/scroll-area";
@@ -11,6 +10,7 @@ import { SocialTitle } from "../connected-accounts/account-section-title";
 import { Button } from "../ui/button";
 import { Link } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { SocialAvatar } from "../connected-accounts/social-avatar";
 
 export const ChooseAccount = () => {
   const router = useRouter();
@@ -86,17 +86,13 @@ export const ChooseAccount = () => {
                       className="gap-2.5 py-2 hover:bg-background/20"
                       variant={"secondary"}
                     >
-                      <Avatar className="w-4 h-4">
-                        {account.platform_profile_picture_url && (
-                          <AvatarImage
-                            className="rounded-full"
-                            src={account.platform_profile_picture_url!}
-                          />
-                        )}
-                        <AvatarFallback>
-                          {account.platform_username?.charAt(0).toUpperCase()}
-                        </AvatarFallback>
-                      </Avatar>
+                      <SocialAvatar
+                        className="w-4 h-4"
+                        profile_picture_url={
+                          account.platform_profile_picture_url
+                        }
+                        username={account.platform_username}
+                      />
                       @{account.platform_username}
                     </Badge>
                   </label>

@@ -1,5 +1,5 @@
 import { createClient } from "@/utils/supabase/server";
-import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
+import { SocialAvatar } from "./connected-accounts/social-avatar";
 
 export const UserNav = async () => {
   const supabase = await createClient();
@@ -12,11 +12,10 @@ export const UserNav = async () => {
   const name = user?.user_metadata["name"];
 
   return (
-    <Avatar className="h-8 w-8 rounded-lg">
-      <AvatarImage src={avatar} alt={name} />
-      <AvatarFallback className="rounded-lg">
-        {user?.email?.charAt(0)}
-      </AvatarFallback>
-    </Avatar>
+    <SocialAvatar
+      className="h-8 w-8 rounded-lg"
+      profile_picture_url={avatar}
+      username={name}
+    />
   );
 };

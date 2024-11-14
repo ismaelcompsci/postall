@@ -40,10 +40,6 @@ export const ConnectedAccounts = ({ accounts }: ConnectedAccountsProps) => {
       window.history.replaceState({}, document.title, window.location.pathname);
     }
   };
-  // TODO: fix
-  const onClose = () => {
-    setNewInstagramAccounts(null);
-  };
 
   useEffect(() => {
     checkParams();

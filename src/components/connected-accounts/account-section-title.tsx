@@ -1,5 +1,5 @@
+import { socialIcons } from "@/lib/platforms";
 import { AccountType } from "@/lib/types";
-import { socialIcons } from "../icons";
 
 export const SocialTitle = ({ accountType }: { accountType: AccountType }) => {
   const Icon = socialIcons[accountType];

@@ -1,5 +1,4 @@
 import { AccountSectionProps } from "@/lib/types";
-
 import { Button } from "../ui/button";
 import { Plus } from "lucide-react";
 import { ConnectedAccountBadge } from "./connected-account-badge";

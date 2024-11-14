@@ -6,7 +6,7 @@ import {
   useCreatePostStore,
 } from "@/state/create-post-state";
 import { useMemo, useState } from "react";
-import { socialIcons } from "../icons";
+import { socialIcons } from "@/lib/platforms";
 import { AccountType } from "@/lib/types";
 import { SocialAvatar } from "../connected-accounts/social-avatar";
 import { Button } from "../ui/button";
