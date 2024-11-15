@@ -6,16 +6,11 @@ import { Loader2 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
-const ext_map = {
-  mp4: "video/mp4",
-  webm: "video/webm",
-  ogg: "video/ogg",
-};
-
 type PreviewState = "processing" | "error" | "ready";
 
 export const VideoPreview = () => {
   const { ffmpeg, loading } = useFFmpeg();
+  const reset = useCreatePostStore((state) => state.reset);
   const file = useCreatePostStore((state) => state.file);
   const setPostFileURL = useCreatePostStore((state) => state.setPostFileURL);
   const setPostFile = useCreatePostStore((state) => state.setPostFile);
@@ -203,34 +198,33 @@ export const VideoPreview = () => {
       }
     } else {
       setFileType("video");
-      finalFile = file;
-      setPreviewState("ready");
       const progressCallback = (p: number) => {
         setPreviewState(p === 100 ? "ready" : "processing");
       };
-      /**
-       * you can display a .mov file after using video/mp4 in the source tag idk
-       */
 
-      // try {
-      //   const proccessedVideoFile = await processVideoFile(
-      //     file,
-      //     progressCallback
-      //   );
-      //   toast.success("Video processed successfully.");
+      try {
+        const proccessedVideoFile = await processVideoFile(
+          file,
+          progressCallback
+        );
+        toast.success("Video processed successfully.");
 
-      //   finalFile = proccessedVideoFile;
-      // } catch (e) {
-      //   setPreviewState("error");
-      //   toast.error("Error processing video.");
-      //   if (e instanceof Error) {
-      //     if (errorRef.current) {
-      //       errorRef.current.textContent = e.message;
-      //     }
-      //   }
+        finalFile = proccessedVideoFile;
+      } catch (e) {
+        const errorMessage =
+          e instanceof Error ? e.message : "File is not supported";
 
-      //   return;
-      // }
+        setPreviewState("error");
+        toast.error("Error processing video. ", { description: errorMessage });
+        if (e instanceof Error) {
+          if (errorRef.current) {
+            errorRef.current.textContent = e.message;
+          }
+        }
+
+        reset();
+        return;
+      }
     }
 
     setPostFile(finalFile!);

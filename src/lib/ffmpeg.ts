@@ -36,6 +36,17 @@ export class FFmpeg {
     return FFmpeg.instance;
   }
 
+  /**
+   * writes file to wasm ffmpeg
+   */
+  private async writeInputFile(file: File, fileName: string) {
+    const fileUrl = URL.createObjectURL(file);
+    const fileData = await fetchFile(fileUrl);
+    await this.ffmpeg.writeFile(fileName, fileData);
+
+    return fileName;
+  }
+
   public async convertToMp4(
     file: File,
     { width, height }: { width: number; height: number },
@@ -45,14 +56,10 @@ export class FFmpeg {
       let { progress } = event;
       cb(Math.round(progress * 100));
     });
-
-    const fileUrl = URL.createObjectURL(file);
-    const fileData = await fetchFile(fileUrl);
-
-    await this.ffmpeg.writeFile("input.mp4", fileData);
+    const fileName = await this.writeInputFile(file, "input.mp4");
     await this.ffmpeg.exec([
       "-i",
-      "input.mp4",
+      fileName,
       "-c:v",
       "libx264",
       "-preset",

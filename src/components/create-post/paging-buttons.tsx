@@ -11,10 +11,10 @@ export const PagingButtons = () => {
   );
 
   const ButtonContainer = ({ children }: { children: React.ReactNode }) => (
-    <>
-      <Separator className="my-4" />
+    <div className="pt-4 space-y-4">
+      <Separator />
       <div className="flex justify-end gap-4">{children}</div>
-    </>
+    </div>
   );
 
   const BackButton = ({ step }: { step: CreatePostStep }) => (

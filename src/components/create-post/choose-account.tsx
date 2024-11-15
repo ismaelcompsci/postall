@@ -56,7 +56,7 @@ export const ChooseAccount = () => {
   }
 
   return (
-    <div className="flex justify-between gap-4">
+    <div className="flex justify-between gap-4 animate-in fade-in">
       <ScrollArea className="w-full">
         {Object.entries(groupedAccounts).map(([provider, accounts], index) => (
           <div

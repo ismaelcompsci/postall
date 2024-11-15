@@ -7,7 +7,7 @@ import { useFFmpeg } from "@/hooks/use-ffmpeg";
 import { Details } from "./details";
 import { ChooseAccount } from "./choose-account";
 import { VideoPreview } from "./video-preview";
-import { Upload } from "./upload";
+import { Upload } from "./upload/upload";
 import { PagingButtons } from "./paging-buttons";
 import { CancelPostAlert } from "./cancel-post-alert";
 
@@ -40,10 +40,10 @@ export const CreatePost = ({ accounts }: CreatePostProps) => {
         {step !== "select-file" && <CancelPostAlert />}
       </div>
 
-      <div className="bg-muted/50 p-4 rounded-lg">
+      <div className="bg-muted/50 p-4 rounded-lg flex flex-col">
         {step === "select-file" && <FileUpload />}
 
-        <div className="flex flex-row justify-between gap-4">
+        <div className="flex justify-between gap-4">
           {step === "choose-accounts" && <ChooseAccount />}
           {step === "details" && <Details />}
           {step === "upload" && <Upload />}

@@ -64,7 +64,7 @@ export const Details = () => {
   };
 
   return (
-    <div className="w-full">
+    <div className="w-full animate-in fade-in">
       <h1 className="text-3xl font-semibold pb-2">Details</h1>
 
       {!editPerPlatform ? (
