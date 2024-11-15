@@ -31,6 +31,7 @@ export async function GET() {
     response_type: "code",
     scope: APP_SERVER_CONSTANTS.youtube.scopes.join(" "),
     access_type: "offline",
+    prompt: "consent",
   };
 
   const query = Object.keys(params)

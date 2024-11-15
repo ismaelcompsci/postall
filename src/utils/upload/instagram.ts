@@ -8,6 +8,26 @@ export interface InstagramUploadParams {
   access_token?: string | null;
 }
 
+interface LongLivedAccessTokenResponse {
+  access_token: string;
+  token_type: string;
+  error?: { message: string };
+}
+
+interface UserInfoResponse {
+  data: {
+    name: string;
+    access_token: string;
+    id: string;
+    connected_instagram_account: {
+      id: string;
+      name: string;
+      username: string;
+      profile_picture_url: string;
+    };
+  }[];
+}
+
 export interface InstagramUploadResult {
   success: boolean;
   link: string;
@@ -31,6 +51,118 @@ export class InstagramUploader {
     if (accessToken) url.searchParams.append("access_token", accessToken);
 
     return url.toString();
+  }
+
+  public static async getFacebookShortLivedToken({
+    client_id,
+    client_secret,
+    redirect_uri,
+    code,
+  }: {
+    client_id?: string;
+    client_secret?: string;
+    redirect_uri: string;
+    code: string;
+  }): Promise<string> {
+    if (!client_id) throw new Error("Instagram client_id is missing");
+    if (!client_secret) throw new Error("Instagram client_secret is missing");
+
+    const params = {
+      client_id,
+      client_secret,
+      code,
+      redirect_uri,
+    };
+
+    const tokenUrl = this.buildGraphAPIURL("oauth/access_token", params, "");
+    const response = await fetch(tokenUrl);
+    const data = await response.json();
+
+    if (data.error_message) throw new Error(data.error_message);
+    return data.access_token as string;
+  }
+
+  public static async getFacebookLongLivedToken({
+    client_id,
+    client_secret,
+    short_lived_token,
+  }: {
+    client_id?: string;
+    client_secret?: string;
+    short_lived_token: string;
+  }): Promise<LongLivedAccessTokenResponse> {
+    if (!client_id) throw new Error("Instagram client_id is missing");
+    if (!client_secret) throw new Error("Instagram client_secret is missing");
+
+    const params = {
+      client_id,
+      client_secret,
+      grant_type: "fb_exchange_token",
+      fb_exchange_token: short_lived_token,
+    };
+
+    const tokenUrl = this.buildGraphAPIURL("oauth/access_token", params, "");
+    const response = await fetch(tokenUrl);
+    const data: LongLivedAccessTokenResponse = await response.json();
+
+    if (!data.access_token || data.error) {
+      throw new Error(
+        "Something went wrong. Access token is missing! " +
+          (data?.error?.message || "")
+      );
+    }
+
+    return data;
+  }
+
+  public static async getFacebookUserInfo({
+    access_token,
+  }: {
+    access_token: string;
+  }): Promise<UserInfoResponse> {
+    if (!access_token) throw new Error("No access_token provided");
+
+    const params = {
+      fields:
+        "connected_instagram_account{id,name,username,profile_picture_url},name",
+    };
+
+    const userInfoUrl = this.buildGraphAPIURL(
+      "me/accounts",
+      params,
+      access_token
+    );
+    const response = await fetch(userInfoUrl);
+    return await response.json();
+  }
+
+  public static async refreshInstagramLongLivedToken({
+    access_token,
+  }: {
+    access_token: string;
+  }) {
+    const params = {
+      grant_type: "ig_refresh_token",
+    };
+
+    const refreshTokenUrl = this.buildGraphAPIURL(
+      "refresh_access_token",
+      params,
+      access_token
+    );
+
+    const response = await fetch(refreshTokenUrl);
+    const data = await response.json();
+
+    const expires_in_to_milliseconds = data.expires_in * 1000;
+    const expiresDateISO = new Date(
+      Date.now() + expires_in_to_milliseconds
+    ).toISOString();
+
+    return {
+      ...data,
+      expires_in: expiresDateISO,
+    };
   }
 
   public static async createMediaContainer(

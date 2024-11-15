@@ -3,32 +3,15 @@ import { createClient } from "@/utils/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
 import { ZodError } from "zod";
 import { PlatformToUpload } from "@/lib/types";
-import { SupabaseClient, User } from "@supabase/supabase-js";
-import { Database } from "../../../../database.types";
 import { InstagramUploader } from "@/utils/upload/instagram";
-import PostgrestError from "@/utils/upload/helpers";
-
-type SupabaseClientType = SupabaseClient<Database>;
-
-interface MediaUrls {
-  fileUrl: string;
-  coverUrl?: string;
-}
-
-interface PlatformAccountData {
-  id: string;
-  access_token: string | null;
-  platform_user_id: string | null;
-  token_expires_at: string | null;
-  refresh_token: string | null;
-  refresh_token_expires_at: string | null;
-}
-
-interface UploadPlatformResponse {
-  success: boolean;
-  postURL?: string;
-  error?: string | null;
-}
+import PostgrestError, {
+  MediaUrls,
+  PlatformAccountData,
+  PostContentResponse,
+  SupabaseClientType,
+  UploadPlatformResponse,
+} from "@/utils/upload/helpers";
+import { User } from "@supabase/supabase-js";
 
 export async function POST(request: NextRequest) {
   try {
@@ -173,8 +156,24 @@ export async function getPlatformAccountData(
       data.token_expires_at &&
       shouldRefreshToken(data.token_expires_at)
     ) {
-      // return await refreshTokens(data, platform.name);
-      console.log("REFRESH TOKEN IS NEEDED");
+      const { access_token, expires_in, token_type } = await refreshTokens(
+        data,
+        platform.name
+      );
+
+      const { error: updateTokenError } = await supabase
+        .from("social_connections")
+        .update({ access_token: access_token, token_expires_at: expires_in })
+        .eq("id", accountId)
+        .eq("platform", platform.name)
+        .eq("user_id", user.id);
+
+      if (updateTokenError) {
+        throw updateTokenError;
+      }
+
+      data.access_token = access_token;
+      data.token_expires_at = expires_in;
     }
 
     return data;
@@ -184,26 +183,57 @@ export async function getPlatformAccountData(
   }
 }
 
+export const refreshTokens = async (
+  data: {
+    id: string;
+    access_token: string | null;
+    platform_user_id: string | null;
+    token_expires_at: string | null;
+    refresh_token: string | null;
+    refresh_token_expires_at: string | null;
+  },
+  platform: string
+) => {
+  switch (platform) {
+    case "instagram":
+      const access_token = data.access_token;
+      if (!access_token) {
+        throw new Error("No access_token found for refresh");
+      }
+
+      const tokens = await InstagramUploader.refreshInstagramLongLivedToken({
+        access_token,
+      });
+      return tokens;
+
+    case "youtube":
+      console.log("REFRESH YOUTUBE");
+
+    default:
+      throw new Error(`Refreshing token error - ${platform}`);
+  }
+};
+
 // Helper function to check if token needs refresh
 function shouldRefreshToken(expiresAt: string | null): boolean {
   if (!expiresAt) return false;
   const expiryTime = new Date(expiresAt).getTime();
-  const currentTime = new Date().getTime();
-  // Refresh if token expires in less than 5 minutes
-  return expiryTime - currentTime < 5 * 60 * 1000;
+  const currentTime = Date.now(); // You can use Date.now() to get current time in milliseconds
+  // Refresh if token expires in less than 24 hours
+  return expiryTime - currentTime < 24 * 60 * 60 * 1000;
 }
 
 export async function handlePlatformUploads(
   parsedData: any,
   user: User,
   supabase: SupabaseClientType
-): Promise<Record<string, UploadPlatformResponse>> {
+): Promise<PostContentResponse> {
   const { fileKey, coverKey, platforms, platformCaptions } = parsedData;
   const parsedPlatforms: PlatformToUpload[] = JSON.parse(platforms);
   const parsedPlatformCaptions: Record<string, string> =
     JSON.parse(platformCaptions);
 
-  const response: Record<string, UploadPlatformResponse> = {};
+  const response: PostContentResponse = {};
 
   for (const platform of parsedPlatforms) {
     try {
